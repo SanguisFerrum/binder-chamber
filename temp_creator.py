@@ -1,23 +1,24 @@
 # -*- coding: utf-8 -*-
 
-import matplotlib.pyplot as plt
-import numpy as np
+from tools.plot import diagram
 
 #Temperaturstufen abfragen
-prog = {}
+prog = []
 instance = 0
 rep = input('Temperaturstufe hinzufügen? ')
 while rep == 'yes':
     instance +=1
     temperature_input = int(input('Bitte Zieltemperatur eingeben [°C]: '))
     zeit_input = int(input('Bitte Dauer eingeben [min]: '))
-    prog[instance] = [temperature_input,zeit_input]
+    prog.append([instance, temperature_input, zeit_input])
     rep = input('Weitere Temperaturstufe hinzufügen? ')
+
+#prog = [[1,50,30],[2,70,60],[3,180,120]]
 
 #Temperdauer berechnen
 time_abs = 0
-for key in prog:
-    time_abs += prog[key][1]
+for i in prog:
+    time_abs += i[2]
 
 #Gesamtzahl der Stufen berechnen. Abhängig von time_abs, da Ofen nicht im Sekundenbereich arbeiten kann und somit keine Nachkommastellen in der Zeitberechnung aufweisen darf
 steps = 98
@@ -40,27 +41,27 @@ time_step_str = time_step_h_str + ':' + time_step_min_str
 
 
 #Stufenanteil berechnen und dem Programmdictionary hinzufügen
-for key in prog:
-    instance_step =prog[key][1] / time_abs * steps #Verhältnis aus zugewiesener und absoluter Zeit wird mit den Anzahl der Stufen multipliziert
-    prog[key].append(instance_step)
+for i in prog:
+    instance_step =i[2] / time_abs * steps #Verhältnis aus zugewiesener und absoluter Zeit wird mit den Anzahl der Stufen multipliziert
+    i.append(instance_step)
 
 #Heizrate (in Stufen) berechnen und dem Programmdictionary hinzufügen
-for key in prog:
+n = -1
+for i in prog:
     # Heizen von Starttemperatur auf erste Zieltemperatur
-    if key == 1:
-        Temp_per_step = (prog[key][0]-25) / prog[key][2]
-    # Wenn zwei aufeinanderfolgende Zieltemperaturen gleich sind, soll die Temperatur gehalten werden, Heizrate entspricht also 0
-    elif prog[key][0] == prog[key-1][0]:
-        Temp_per_step = 0
-    # Heizen von einer Zieltemperatur auf eine Größere
+    if n == -1:
+        Temp_per_step = (i[1]-25) / i[3]
+        n += 1
+        # Heizen von einer Zieltemperatur auf eine Größere
     else:
-        Temp_per_step = (prog[key][0]-prog[key-1][0]) / prog[key][2]
-    prog[key].append(Temp_per_step)
+        Temp_per_step = (i[1]-prog[n][1]) / i[3]
+        n += 1
+    i.append(Temp_per_step)
 
 
 #Programm schreiben
 #Header auslesen
-with open('Data/test_firas.prg', 'r', encoding="iso-8859-1") as prg:
+with open('Data/Header.prg', 'r', encoding="iso-8859-1") as prg:
     header = prg.readlines()[0:5]
 prg.close()
 
@@ -78,11 +79,11 @@ with open('test2.prg', 'w', encoding="iso-8859-1") as file:
     row_first = row.format(No=No,Value_T='25.0', Length='00:10', End='98', Value_F='50.0',Jump='Jump')
     file.write(row_first)
     #Temperaturprogramm schreiben
-    for key in prog:
+    for i in prog:
         instance_step_current = 0 #Mithilfe instance_step_current kann ermittelt werden, ob alle Stufen einer Instanz berücksihtig wurden
-        while instance_step_current < prog[key][2]: #Jeder Instanz wurde eine absolute Anzahl an Stufen zugeschrieben, solange instance_step_current dieser Zahl nicht entspricht wurden noch nicht alle Stufen der Instanz berücksichtigt
+        while instance_step_current < i[3]: #Jeder Instanz wurde eine absolute Anzahl an Stufen zugeschrieben, solange instance_step_current dieser Zahl nicht entspricht wurden noch nicht alle Stufen der Instanz berücksichtigt
             instance_step_current += 1
-            temp_step += prog[key][3]
+            temp_step += i[4]
             temp_step_str = str(round(temp_step,1))
             No += 1
             row_step = row.format(No=No, Value_T=temp_step_str, End='', Length=time_step_str, Value_F='25.0',Jump='')
@@ -94,29 +95,6 @@ with open('test2.prg', 'w', encoding="iso-8859-1") as file:
         file.write(row_fill)
 file.close()
 
-#Temperaturprogramm plotten
-data = open('test2.prg', 'r', encoding="iso-8859-1")
+print(prog)
 
-content = data.readlines()[5:]
-
-data.close()
-
-time = 0
-
-temp_ar = np.array([])
-time_ar = np.array([])
-plot_data = np.array([])
-bundle = np.array([])
-
-for i in content:
-    values = i.split('\t')
-
-    temp = values[1]
-    temp_ar = np.append(temp_ar, temp)
-
-    time_frac = values[2].split(':')
-    time += int(time_frac[0]) + (int(time_frac[1]) / 60)
-    time_ar = np.append(time_ar, time)
-
-plt.plot(time_ar, temp_ar)
-plt.show()
+diagram('test2.prg')
