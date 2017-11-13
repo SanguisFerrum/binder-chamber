@@ -33,8 +33,12 @@ time_step_h = int(time_step // 60)
 time_step_min = int(time_step % 60)
 if time_step_h < 10:
     time_step_h_str = '0' + str(time_step_h)
+else:
+    time_step_h_str = str(time_step_h)
 if time_step_min < 10:
     time_step_min_str = '0' + str(time_step_min)
+else:
+    time_step_min_str = str(time_step_min)
 time_step_str = time_step_h_str + ':' + time_step_min_str
 
 
@@ -61,7 +65,7 @@ for i in prog:
 
 #Programm schreiben
 #Header auslesen
-with open('Data/Header.prg', 'r', encoding="iso-8859-1") as prg:
+with open('Data/Header.prg', 'r', encoding="UTF-8") as prg:
     header = prg.readlines()[0:5]
 prg.close()
 
@@ -69,7 +73,7 @@ prg.close()
 row = '{No}\t{Value_T}\t{Length}\t-999\t999\t0\t0\t{End}\t{Value_F}\t{Length}\t-999\t999\t0\t0\t{End}\t{Jump}\t\n'
 
 #Temperaturprogramm erstellen
-temp_step = 25.0 #Starttemperatur
+temp_step = 25.0 - prog[0][4] #Starttemperatur
 No = 0 #Erste Stufe
 with open('test2.prg', 'w', encoding="iso-8859-1") as file:
     #Header schreiben
