@@ -46,7 +46,7 @@ time_step_str = time_step_h_str + ':' + time_step_min_str
 
 #Stufenanteil berechnen und dem Programmdictionary hinzufügen
 for i in prog:
-    instance_step =i[2] / time_abs * steps #Verhältnis aus zugewiesener und absoluter Zeit wird mit den Anzahl der Stufen multipliziert
+    instance_step =int(i[2] / time_abs * steps) #Verhältnis aus zugewiesener und absoluter Zeit wird mit den Anzahl der Stufen multipliziert
     i.append(instance_step)
 
 #Heizrate (in Stufen) berechnen und dem Programmdictionary hinzufügen
@@ -65,7 +65,7 @@ for i in prog:
 
 #Programm schreiben
 #Header auslesen
-with open('Data/Header.prg', 'r', encoding="UTF-8") as prg:
+with open('data/Header.prg', 'r', encoding="UTF-8") as prg:
     header = prg.readlines()[0:5]
 prg.close()
 
